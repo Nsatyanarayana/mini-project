@@ -59,12 +59,11 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        
-        const userId = sessionStorage.getItem("user_id")
-        console.log("userId",userId)
+        const userId = sessionStorage.getItem("user_id");
+        console.log("userId", userId);
         let applications = [];
         let allJobs = []; // Store all jobs fetched from the server
-
+    
         async function fetchJobs() {
             try {
                 const response = await fetch('http://127.0.0.1:8500/employer/jobs');
@@ -78,45 +77,62 @@
                 document.getElementById('jobsList').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
             }
         }
-
+    
         function displayJobs(jobs) {
             const jobsList = document.getElementById('jobsList');
             if (jobs.length === 0) {
                 jobsList.innerHTML = '<p class="text-center">No jobs available at the moment.</p>';
                 return;
             }
-
-            const jobsHTML = jobs.map(job => `
-                <div class="col-md-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body <h5 class="card-title">${job.title}</h5>
-                            <p class="card-text"><strong>Location:</strong> ${job.location}</p>
-                            <p class="card-text"><strong>Skills:</strong> ${job.skills.join(', ')}</p>
-                            <p class="card-text"><strong>Description:</strong> ${job.description}</p>
-                            <button class="btn btn-primary w-100" onclick="applyJob('${job.job_id}', '${job.title}')" id='id-${job.job_id}'>Apply Now</button>
+    
+            const jobsHTML = jobs.map(job => {
+                // Check if the job is already applied
+                 const appliedJobs = JSON.parse(sessionStorage.getItem('appliedJobs')) || [];
+                const isApplied = appliedJobs.includes(job.job_id);
+    
+                return `
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">${job.title}</h5>
+                                <p class="card-text"><strong>Location:</strong> ${job.location}</p>
+                                <p class="card-text"><strong>Skills:</strong> ${job.skills.join(', ')}</p>
+                                <p class="card-text"><strong>Description:</strong> ${job.description}</p>
+                                <button class="btn ${isApplied ? 'btn-success' : 'btn-primary'} w-100" 
+                                        onclick="applyJob('${job.job_id}', '${job.title}')" 
+                                        id="id-${job.job_id}" 
+                                        ${isApplied ? 'disabled' : ''}>
+                                    ${isApplied ? 'Applied' : 'Apply Now'}
+                                </button>
+                                
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
-
+                `;
+            }).join('');
+    
             jobsList.innerHTML = jobsHTML;
         }
-
+    
         async function applyJob(job_id, job_title) {
-            console.log(userId)
+            console.log(userId);
             try {
                 const response = await fetch(`http://127.0.0.1:8500/job_seeker/apply?job_id=${job_id}&user_id=${userId}`);
+                const data = await response.json()
                 if (response.ok) {
                     const button = document.getElementById(`id-${job_id}`);
                     button.classList.remove('btn-primary');
                     button.classList.add('btn-success');
                     button.textContent = 'Applied';
-                    alert('Job applied successfully!');
-
+                    button.disabled = true;
+    
+                    alert(data);
+                    window.location.reload()
+                         
                     // Add application to the tracker
                     addApplication(job_id, job_title);
                 } else {
-                    alert('Failed to apply for the job. Please try again.');
+                    alert(data);
                 }
             } catch (error) {
                 console.error(error);
@@ -131,10 +147,10 @@
                 status: 'Applied',
                 applied_on: new Date().toLocaleDateString()
             };
-            applications.push(application);    
+            applications.push(application);
             // displayApplications(applications);
         }
-
+    
         async function displayApplications() {
             const applicationsList = document.getElementById('applicationsList');
             const responce = await fetch(`http://127.0.0.1:8500/job_seeker/applications?user_id=${userId}`)
@@ -144,7 +160,7 @@
                 applicationsList.innerHTML = '<p class="text-center">No applications submitted yet.</p>';
                 return;
             }
-
+    
             const applicationsHTML = data.applied_list.map(application => `
                 <div class="col-md-4"> 
                     <div class="card h-100 shadow-sm">
@@ -154,14 +170,15 @@
                             <p class="card-text"><strong>Location:</strong> ${application.location}</p>
                             <p class="card-text"><strong>Skills:</strong> ${application.skills.join(', ')}</p>
                             <p class="card-text"><strong>Description:</strong> ${application.description}</p>
+                           <button class="btn btn-danger" onclick="removeApplication('${application.job_id}')">Remove Application</button>  
                         </div>
                     </div>
                 </div>
             `).join('');
-
+    
             applicationsList.innerHTML = applicationsHTML;
         }
-
+    
         function searchJobs() {
             const searchInput = document.getElementById('searchInput').value.toLowerCase();
             const filteredJobs = allJobs.filter(job => 
@@ -172,10 +189,30 @@
             displayJobs(filteredJobs);
         }
 
-        
+        async function removeApplication(job_id) {
+         try {
+        const response = await fetch(`http://127.0.0.1:8500/job_seeker/remove_application?job_id=${job_id}&user_id=${userId}`, {
+            method: 'DELETE',
+        });
 
+        if (response.ok) {
+
+            alert('Application removed successfully!');
+            window.location.reload();
+        } else {
+            alert('Failed to remove the application. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error removing application:', error);
+        alert('An error occurred while removing the application. Please try again.');
+    }
+}
+
+
+    
         fetchJobs();
         displayApplications();
     </script>
+    
 </body>
 </html>

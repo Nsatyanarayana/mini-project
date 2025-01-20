@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from bson import ObjectId
 from utils.db import db
+
 
 router = APIRouter()
 
@@ -24,6 +26,9 @@ async def upload_resume(user_id: str, resume: UploadFile = File(...)):
     return {"message": "Resume uploaded successfully", "filename": filename}
 
 
+
+
+
 @router.get("/search_jobs")
 async def search_jobs(skill: str = None, location: str = None, title: str = None):
     """
@@ -45,36 +50,40 @@ async def search_jobs(skill: str = None, location: str = None, title: str = None
 
     return {"jobs": jobs}
 
+
+
+
 @router.get("/apply")    
 async def apply_for_job(job_id: str , user_id:str):
     print(job_id)
     print(user_id)
     job =  db.jobs.find_one({"job_id": job_id})
     user =  db.users.find_one({"user_id": user_id})
+
+    existing_application = db.applications.find_one({"job_id": job_id})
+    if existing_application:
+        return JSONResponse(content="you have already applied for this job" , status_code=400)
+
     application = {
         "job_id": job_id, 
         "user_id": user_id,
         "status":"applied"
     }
     db.applications.insert_one(application)
+    return JSONResponse(content="sucessfully Applied !")
+                        
 
-    return {"message": "Application submitted successfully"}
-# @router.get("/apply")    
-# async def apply_for_job(job_id: str, user_id: str):
-#     print(job_id, user_id)
-#     user =  db.users.find_one({"_id": ObjectId(user_id)})
-#     job = db.jobs.find_one({"job_id": job_id})
-#     if not user or not job:
-#         raise HTTPException(status_code=404, detail="User  or job not found")
+
+
+
+@router.delete("/remove_application")
+async def remove_application(job_id: str):
     
-#     application = {
-#         "job_id": job_id,
-#         "user_id": user_id,
-#         "status": "Applied"
-#     }
-#     db.applications.insert_one(application)
+    job = db.jobs.find_one({"job_id": job_id})
+   
+    db.applications.delete_one({"job_id": job_id, })
+    return {"message": f"Application for job {job_id} removed successfully"}
 
-#     return {"message": "Application submitted successfully"}
 
 @router.get("/applications")
 async def get_applications(user_id:str):
