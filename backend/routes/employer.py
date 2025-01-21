@@ -23,14 +23,6 @@ async def post_job(job: Job):
             }
     db.jobs.insert_one(data)
     return {"message": "Job posted successfully"}
-
-@router.put("/edit_job/{job_id}")
-async def edit_job(job_id: str, job: Job):
-    result =  db.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": job.__dict__})
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return {"message": "Job updated successfully"}
-
 @router.get("/jobs", response_model=Job)
 async def get_jobs():
     jobs = list(db.jobs.find({}, {"_id": 0}))  # Exclude `_id` for simplicity in the frontend

@@ -8,7 +8,7 @@ document.getElementById("post-job-form")?.addEventListener("submit", async (e) =
     const location = document.getElementById("location").value;
 
     const token = localStorage.getItem("access_token");
-    const API_BASE_URL = "http://127.0.0.1:8500";
+    const API_BASE_URL = "http://127.0.0.1:8600";
 
     const response = await fetch(`${API_BASE_URL}/employer/post_job`, {
         method: "POST",

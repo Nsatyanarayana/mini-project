@@ -25,34 +25,6 @@ async def upload_resume(user_id: str, resume: UploadFile = File(...)):
     
     return {"message": "Resume uploaded successfully", "filename": filename}
 
-
-
-
-
-@router.get("/search_jobs")
-async def search_jobs(skill: str = None, location: str = None, title: str = None):
-    """
-    Retrieve a list of job postings filtered by skill, location, or title.
-    """
-    query = {}
-    if skill:
-        query["skills"] = {"$regex": skill, "$options": "i"} 
-        query["location"] = {"$regex": location, "$options": "i"}  
-    if title:
-        query["title"] = {"$regex": title, "$options": "i"} 
-
-    jobs = list(db.jobs.find(query).limit(100))
-
-    if not jobs:
-        raise HTTPException(status_code=404, detail="No jobs found matching the criteria")
-    for job in jobs:
-        job["_id"] = str(job["_id"])
-
-    return {"jobs": jobs}
-
-
-
-
 @router.get("/apply")    
 async def apply_for_job(job_id: str , user_id:str):
     print(job_id)

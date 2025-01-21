@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -89,7 +89,7 @@
         const jobDesContainer = document.getElementById("jobDes");
 
         const getPostedJobs = async () => {
-            const jobRes = await fetch("http://127.0.0.1:8500/employer/jobs");
+            const jobRes = await fetch("http://127.0.0.1:8600/employer/jobs");
             const data = await jobRes.json();
             console.log(data);
             jobList(data);
@@ -144,6 +144,56 @@
                 jobDesContainer.append(col);
             });
         };
+        const jobApplicationsContainer = document.getElementById("jobApplications");
+
+const getJobApplications = async () => {
+    const applicationsRes = await fetch("http://127.0.0.1:8600//viewapplications/{user_id}");
+    const applicationsData = await applicationsRes.json();
+    console.log(applicationsData);
+    displayJobApplications(applicationsData);
+};
+
+const displayJobApplications = (applications) => {
+    applications.forEach(application => {
+        const col = document.createElement("div");
+        col.className = "col-md-4 mb-4";
+
+        const card = document.createElement("div");
+        card.className = "card h-100 shadow-sm";
+
+        const cardBody = document.createElement("div");
+        cardBody.className = "card-body d-flex flex-column";
+
+        const applicantName = document.createElement("h5");
+        applicantName.className = "card-title";
+        applicantName.textContent = application.applicantName || "Applicant Name";
+
+        const jobTitle = document.createElement("p");
+        jobTitle.className = "card-text flex-grow-1";
+        jobTitle.textContent = application.jobTitle || "Job Title";
+
+        const applicationStatus = document.createElement("p");
+        applicationStatus.className = "card-text";
+        applicationStatus.innerHTML = `<small class="text-muted">Status: ${application.status || "N/A"}</small>`;
+
+        const viewButton = document.createElement("a");
+        viewButton.href = "#";
+        viewButton.className = "btn btn-primary mt-3";
+        viewButton.textContent = "View Details";
+
+        // "View Details" button
+        viewButton.addEventListener("click", () => {
+            // Populate the modal with application details (if needed)
+            // For example, you can show more details about the applicant
+            // Show the modal (if you have a modal for application details)
+        });
+
+        cardBody.append(applicantName, jobTitle, applicationStatus, viewButton);
+        card.append(cardBody);
+        col.append(card);
+        jobApplicationsContainer.append(col);
+    });
+};
 
         addEventListener("DOMContentLoaded", getPostedJobs);
 

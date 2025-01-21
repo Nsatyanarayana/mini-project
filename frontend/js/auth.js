@@ -5,7 +5,7 @@ document.getElementById("register-form")?.addEventListener("submit", async (e) =
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const role = document.getElementById("role").value;
-    const API_BASE_URL = "http://127.0.0.1:8500";
+    const API_BASE_URL = "http://127.0.0.1:8600";
 
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
