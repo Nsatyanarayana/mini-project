@@ -59,17 +59,22 @@ async def apply_for_job(job_id: str , user_id:str):
     print(user_id)
     job =  db.jobs.find_one({"job_id": job_id})
     user =  db.users.find_one({"user_id": user_id})
+    
 
-    existing_application = db.applications.find_one({"job_id": job_id})
+    existing_application = db.applications.find_one({"job_id": job_id ,"user_id": user_id})
     if existing_application:
         return JSONResponse(content="you have already applied for this job" , status_code=400)
 
     application = {
+        
         "job_id": job_id, 
         "user_id": user_id,
         "status":"applied"
+       
     }
     db.applications.insert_one(application)
+    db.jobs.update_one({"job_id": job_id},{"$push":{"applicants":[user_id]}})
+
     return JSONResponse(content="sucessfully Applied !")
                         
 

@@ -37,3 +37,34 @@ async def get_jobs():
     print(jobs)
     return JSONResponse(content=jobs)
 
+
+@router.get("/view_applications")
+async def view_applications():
+
+    applications = list(db.applications.find())
+
+    for i in applications:
+        i["_id"] = str(i["_id"])
+       
+
+    return {"applications": applications}
+
+
+@router.patch("/applications/{application_id}/update")
+async def update_application(application_id: str, status: str):
+    
+    if not ObjectId.is_valid(application_id):
+        raise HTTPException(status_code=400, detail="Invalid application ID")
+    
+    application = db.applications.find_one({"_id": ObjectId(application_id)})
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+  
+    update_data = {"status": status}
+    db.applications.update_one({"_id": ObjectId(application_id)}, {"$set": update_data})
+    
+    return {"message": f"Application {status} successfully", "application_id": application_id}
+
+
+    

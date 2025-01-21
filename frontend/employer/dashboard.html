@@ -7,17 +7,57 @@
     <link rel="stylesheet" href="../css/emp.css">
     <script src="js/employer.js" defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 </head>
+
 <body>
-    <div class="container my-4">
-        <h1 class="mb-4 text-center">Employer Dashboard</h1>
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="post-job.html" class="btn btn-primary">Post a Job</a>
-        </div>
-        <div class="row" id="jobDes"></div>
+    
+    <header>
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid justify-content-center">
+                <a class="navbar-brand text-center" href="#">Employer Dashboard</a>
+            </div>
+        </nav>
+    </header>
+    
+        
+      <!-- Bootstrap -->
+     
+      <ul class="nav nav-pills mb-4 navbar-dark bg-dark" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active text-white" id="pills-dashboard-tab" data-bs-toggle="pill" href="#pills-dashboard" role="tab" aria-controls="pills-dashboard" aria-selected="true">Dashboard</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-white" id="pills-post-job-tab" data-bs-toggle="pill" href="#pills-post-job" role="tab" aria-controls="pills-post-job" aria-selected="false">Post a Job</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-white" id="pills-profile-tab" data-bs-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Applications</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-white" href="/frontend/index.html" role="tab" aria-controls="pills-logout" aria-selected="false">Logout</a>
+        </li>
+    </ul>
+    
+    
+
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="pills-dashboard" role="tabpanel" aria-labelledby="pills-dashboard-tab">
+                <div class="row" id="jobDes"></div>
+            </div>
+            <div class="tab-pane fade" id="pills-post-job" role="tabpanel" aria-labelledby="pills-post-job-tab">
+                <h2 class="mb-4">Post a Job</h2>
+                <a href="post-job.html" class="btn btn-primary">Post a Job</a>
+            </div>
+            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                
+    <div id="applicationsContainer">
+        <!-- Applications will be loaded here dynamically -->
     </div>
+               
+                <!-- Applications content can go here -->
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -38,6 +78,12 @@
             </div>
         </div>
     </div>
+
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+
 
     <script>
         const jobDesContainer = document.getElementById("jobDes");
@@ -100,9 +146,71 @@
         };
 
         addEventListener("DOMContentLoaded", getPostedJobs);
-        //get user details from storege and asign to it a variable
-        // chage backed functionality , job_id store into the users as a array nned to change api call
-        // wright a api call , input(job_id from user , search jobs, return each object and render it )
-    </script>
-</body>
-</html>
+
+
+
+       
+    async function fetchApplications() {
+        try {
+            const response = await fetch("http://127.0.0.1:8500/employer/view_applications");
+            const data = await response.json();
+            displayApplications(data.applications);
+        } catch (error) {
+            console.error("Error fetching applications:", error);
+        }
+    }
+
+    function displayApplications(applications) {
+        console.log("applications" , applications)
+        const applicationsContainer = document.getElementById("applicationsContainer");
+        if (applications.length === 0) {
+            applicationsContainer.innerHTML = "<p class='text-center'>No applications received yet.</p>";
+            return;
+        }
+
+        const applicationsHTML = applications.map(app => `
+            <div class="list-group-item">
+                <p><strong>User ID:</strong> ${app.user_id}</p>
+                <p><strong>Job ID:</strong> ${app.job_id}</p>
+                <p><strong>Status:</strong> <span id="status-${app._id}">${app.status}</span></p>
+                <div class="d-flex justify-content-between mt-2">
+                    <button class="btn btn-success" onclick="updateApplication('${app._id}', 'accepted')">Accept</button>
+                    <button class="btn btn-danger" onclick="updateApplication('${app._id}', 'rejected')">Reject</button>
+                </div>
+            </div>
+        `).join("");
+
+        applicationsContainer.innerHTML = applicationsHTML;
+    }
+
+    async function updateApplication(applicationId, status) {
+        try {
+            const response = await fetch(`http://127.0.0.1:8500/employer/applications/${applicationId}/update`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                
+                document.getElementById(`status-${applicationId}`).textContent = status;
+                alert(data.message);
+            } else {
+                alert(data.detail || "Error updating application");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("An error occurred while updating the application status.");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchApplications);
+
+
+
+
+
+ </script>
+ </body>
+ </html>
